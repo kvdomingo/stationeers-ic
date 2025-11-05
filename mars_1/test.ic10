@@ -1,0 +1,33 @@
+alias PA1 d0
+alias Valve1 d1
+alias PA2 d2
+alias Valve2 d3
+beqz 1 15
+yield
+push 297
+push 1
+push 0
+jal 16
+push 297
+push 3
+push 2
+jal 16
+j 4
+j 9999
+pop r0
+pop r1
+pop r2
+push ra
+l r3 dr0 Temperature
+sgt r3 r3 r2
+l r4 dr0 Temperature
+sub r0 r2 r4
+abs r0 r0
+move r2 10
+sgt r0 r0 5
+beqz r0 29
+move r2 100
+s dr1 On r3
+s dr1 Setting r2
+pop ra
+j ra
