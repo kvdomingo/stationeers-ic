@@ -1,0 +1,26 @@
+pin GasSensor d0;
+
+const ABS_ZERO = 273;
+
+void Main() {
+    var MIN_TEMP = ABS_ZERO + 18;
+    var TARGET_TEMP = ABS_ZERO + 21;
+    var MAX_TEMP = ABS_ZERO + 25;
+
+    while (true) {
+        yield;
+        
+        if (GasSensor.Temperature < MIN_TEMP) {
+            DevicesOfType("StructureWallHeater").On = 1;
+        }
+        if (GasSensor.Temperature <= TARGET_TEMP) {
+            DevicesOfType("StructureWallCooler").On = 0;
+        }
+        if (GasSensor.Temperature >= TARGET_TEMP) {
+            DevicesOfType("StructureWallHeater").On = 0;
+        }
+        if (GasSensor.Temperature > MAX_TEMP) {
+            DevicesOfType("StructureWallCooler").On = 1;
+        }
+    }
+}

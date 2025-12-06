@@ -1,0 +1,8 @@
+{
+  "vscord.app.privacyMode.enable": false,
+  "[c][ic11]": {
+    "editor.indentSize": 2,
+    "editor.formatOnSave": true,
+    "editor.autoIndent": "full"
+  }
+}
