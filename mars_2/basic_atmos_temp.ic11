@@ -1,11 +1,15 @@
 pin GasSensor d0;
+pin TempDisplay d1;
 
 const ABS_ZERO = 273;
+const MIN_TEMP_C = 18;
+const TARGET_TEMP_C = 21;
+const MAX_TEMP_C = 24;
 
 void Main() {
-    var MIN_TEMP = ABS_ZERO + 18;
-    var TARGET_TEMP = ABS_ZERO + 21;
-    var MAX_TEMP = ABS_ZERO + 25;
+    var MIN_TEMP = ABS_ZERO + MIN_TEMP_C;
+    var TARGET_TEMP = ABS_ZERO + TARGET_TEMP_C;
+    var MAX_TEMP = ABS_ZERO + MAX_TEMP_C;
 
     while (true) {
         yield;
@@ -22,5 +26,8 @@ void Main() {
         if (GasSensor.Temperature > MAX_TEMP) {
             DevicesOfType("StructureWallCooler").On = 1;
         }
+
+        TempDisplay.Mode = 4;
+        TempDisplay.Setting = GasSensor.Temperature - ABS_ZERO;
     }
 }
