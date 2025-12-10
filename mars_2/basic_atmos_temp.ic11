@@ -1,6 +1,9 @@
 pin GasSensor d0;
 pin TempDisplay d1;
-pin PressureDisplay d2;
+pin PctO2Display d2;
+pin PctN2Display d3;
+pin PctCO2Display d4;
+pin PressureDisplay d5;
 
 const ABS_ZERO = 273;
 const MIN_TEMP_C = 18;
@@ -31,7 +34,16 @@ void Main() {
         TempDisplay.Mode = 4;
         TempDisplay.Setting = GasSensor.Temperature - ABS_ZERO;
 
-        PressureDisplay.Mode = 1;
-        PressureDisplay.Setting = GasSensor.RatioOxygen;
+        PressureDisplay.Mode = 14;
+        PressureDisplay.Setting = GasSensor.Pressure;
+
+        PctN2Display.Mode = 1;
+        PctN2Display.Setting = GasSensor.RatioNitrogen;
+
+        PctCO2Display.Mode = 1;
+        PctCO2Display.Setting = GasSensor.RatioCarbonDioxide;
+
+        PctO2Display.Mode = 1;
+        PctO2Display.Setting = GasSensor.RatioOxygen;
     }
 }
