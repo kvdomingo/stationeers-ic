@@ -35,7 +35,7 @@ void Main() {
         TempDisplay.Setting = GasSensor.Temperature - ABS_ZERO;
 
         PressureDisplay.Mode = 14;
-        PressureDisplay.Setting = GasSensor.Pressure;
+        PressureDisplay.Setting = GasSensor.Pressure * 1000;
 
         PctN2Display.Mode = 1;
         PctN2Display.Setting = GasSensor.RatioNitrogen;
