@@ -1,0 +1,39 @@
+pin PowerGenDisp d0;
+pin PowerConsDisp d1;
+pin PowerStoredDisp d2;
+pin StoredPctDisp d3;
+pin BatteryTimeDisp d4;
+
+const SECONDS_PER_TICK = 0.5;  // approximate only
+
+void Main() {
+    while (true) {
+        yield;
+
+        var solarGeneration = DevicesOfType("StructureLogicMirror").WithName("Solar Generation").PowerPotential.Sum;
+        var windGeneration = DevicesOfType("StructureLogicMirror").WithName("Wind Generation").PowerPotential.Sum;
+        var powerConsumption = DevicesOfType("StructureLogicMirror").WithName("Main Breaker").PowerActual.Sum;
+        var coalGeneration = DevicesOfType("StructureSolidFuelGenerator").PowerGeneration.Sum;
+        var totalGeneration = solarGeneration + windGeneration + coalGeneration;
+        
+        var batteryStored = DevicesOfType("StructureBatteryLarge").Charge.Sum;
+        var batteryCapacity = DevicesOfType("StructureBatteryLarge").Ratio.Average;
+        var batteryTimeTicks = batteryStored / (powerConsumption - totalGeneration);
+        var batteryTimeMins = batteryTimeTicks * SECONDS_PER_TICK / 60;
+
+        PowerGenDisp.Mode = 2;
+        PowerGenDisp.Setting = totalGeneration;
+
+        PowerConsDisp.Mode = 2;
+        PowerConsDisp.Setting = powerConsumption;
+
+        PowerStoredDisp.Mode = 2;
+        PowerStoredDisp.Setting = batteryStored;
+
+        StoredPctDisp.Mode = 1;
+        StoredPctDisp.Setting = batteryCapacity;
+
+        BatteryTimeDisp.Mode = 8;
+        BatteryTimeDisp.Setting = batteryTimeMins;
+    }
+}
