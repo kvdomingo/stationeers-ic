@@ -5,35 +5,50 @@ pin StoredPctDisp d3;
 pin BatteryTimeDisp d4;
 
 const SECONDS_PER_TICK = 0.5;  // approximate only
+const EPSILON = 0.000001;
 
 void Main() {
+    PowerGenDisp.Mode = 2;
+    PowerConsDisp.Mode = 2;
+    PowerStoredDisp.Mode = 2;
+    StoredPctDisp.Mode = 1;
+
     while (true) {
         yield;
 
         var solarGeneration = DevicesOfType("StructureLogicMirror").WithName("Solar Generation").PowerPotential.Sum;
         var windGeneration = DevicesOfType("StructureLogicMirror").WithName("Wind Generation").PowerPotential.Sum;
-        var powerConsumption = DevicesOfType("StructureLogicMirror").WithName("Main Breaker").PowerActual.Sum;
+        var rtgGeneration = DevicesOfType("StructureRTGSurvival").PowerGeneration.Sum;
         var coalGeneration = DevicesOfType("StructureSolidFuelGenerator").PowerGeneration.Sum;
-        var totalGeneration = solarGeneration + windGeneration + coalGeneration;
+        var totalGeneration = solarGeneration + windGeneration + coalGeneration + rtgGeneration;
+        
+        var powerConsumption = DevicesOfType("StructureLogicMirror").WithName("Main Breaker").PowerActual.Sum;
         
         var batteryStored = DevicesOfType("StructureBatteryLarge").Charge.Sum;
-        var batteryCapacity = DevicesOfType("StructureBatteryLarge").Ratio.Average;
-        var batteryTimeTicks = batteryStored / (powerConsumption - totalGeneration);
+        var batteryRatio = DevicesOfType("StructureBatteryLarge").Ratio.Average;
+        var netConsumption = powerConsumption - totalGeneration;
+        var batteryTimeTicks = 0;
+        
+        if (netConsumption > EPSILON) {
+            batteryTimeTicks = batteryStored / netConsumption;
+        } else {
+            batteryTimeTicks = 999999;
+        }
+        
         var batteryTimeMins = batteryTimeTicks * SECONDS_PER_TICK / 60;
+        var batteryTimeDays = batteryTimeMins / 60 / 24;
 
-        PowerGenDisp.Mode = 2;
+        if (batteryTimeMins >= 1000) {
+            BatteryTimeDisp.Mode = 9;
+            BatteryTimeDisp.Setting = batteryTimeDays;
+        } else {
+            BatteryTimeDisp.Mode = 8;
+            BatteryTimeDisp.Setting = batteryTimeMins;
+        }
+
         PowerGenDisp.Setting = totalGeneration;
-
-        PowerConsDisp.Mode = 2;
         PowerConsDisp.Setting = powerConsumption;
-
-        PowerStoredDisp.Mode = 2;
         PowerStoredDisp.Setting = batteryStored;
-
-        StoredPctDisp.Mode = 1;
-        StoredPctDisp.Setting = batteryCapacity;
-
-        BatteryTimeDisp.Mode = 8;
-        BatteryTimeDisp.Setting = batteryTimeMins;
+        StoredPctDisp.Setting = batteryRatio;
     }
 }
