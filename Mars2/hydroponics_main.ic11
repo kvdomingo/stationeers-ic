@@ -1,0 +1,91 @@
+pin DaylightSensor d0;
+pin OccupancySensor d1;
+pin Larre d2;
+
+const MINUTES_IN_LIGHT = 12.5;
+const DEGREES_PER_MINUTE = 18;
+const DOCK_STATION = 0;
+const PLANTER_STATION_ROW_1_START = 7;
+const PLANTER_STATION_ROW_1_END = 11;
+const PLANTER_STATION_ROW_2_START = 1;
+const PLANTER_STATION_ROW_2_END = 5;
+const FRIDGE_STATION = 6;
+const FRIDGE_POTATO_INDEX = 4;
+const FRIDGE_POTATO_SEED_INDEX = 10;
+const PLANTER_INDEX = 0;
+
+void Main() {
+    Larre.On = true;
+
+    while (true) {
+        HandleLights();
+        HandleGetSeeds();
+
+        for (
+            var station = PLANTER_STATION_ROW_1_START;
+            station <= PLANTER_STATION_ROW_1_END;
+            station = station + 1
+        ) {
+            HandleLarre(station);
+        }
+
+        for (
+            var station = PLANTER_STATION_ROW_2_START;
+            station <= PLANTER_STATION_ROW_2_END;
+            station = station + 1
+        ) {
+            HandleLarre(station);
+        }
+
+        HandleStoreHarvest();
+    }
+}
+
+void HandleGetSeeds() {
+    Larre.Setting = FRIDGE_STATION;
+    WaitForLarreIdle();
+    // Larre.TargetSlotIndex = FRIDGE_POTATO_SEED_INDEX;
+    // Larre.Activate = true;
+    // WaitForLarreIdle();
+}
+
+void HandleStoreHarvest() {
+    Larre.Setting = FRIDGE_STATION;
+    WaitForLarreIdle();
+    // Larre.TargetSlotIndex = FRIDGE_POTATO_INDEX;
+    // Larre.Activate = true;
+    // WaitForLarreIdle();
+}
+
+void HandleLarre(station) {
+    Larre.Setting = station;
+    WaitForLarreIdle();
+
+    if (
+        Larre.Slots[255].Occupied & (
+            !Larre.Slots[255].Mature
+            | !Larre.Slots[255].Seeding != 1
+        )
+    ) {
+        return;
+    }
+
+    // Larre.Activate = true;
+    // WaitForLarreIdle();
+}
+
+void WaitForLarreIdle() {
+    while (!Larre.Idle) {
+        yield;
+        HandleLights();
+    }
+}
+
+void HandleLights() {
+    var degreesPerDay = DEGREES_PER_MINUTE * MINUTES_IN_LIGHT;
+    var halfLightBudget = degreesPerDay / 2;
+
+    DevicesOfType("StructureGrowLight").On = DaylightSensor.SolarAngle < halfLightBudget;
+    DevicesOfType("StructureLightLongAngled").On = OccupancySensor.Activate;
+    DevicesOfType("StructureLightLongWide").On = OccupancySensor.Activate;
+}
