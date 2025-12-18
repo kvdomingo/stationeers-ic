@@ -10,10 +10,20 @@ const MIN_TEMP_C = 18;
 const TARGET_TEMP_C = 21;
 const MAX_TEMP_C = 24;
 
+const DISPLAY_MODE_PERCENT = 1;
+const DISPLAY_MODE_TEMPERATURE = 4;
+const DISPLAY_MODE_PRESSURE = 14;
+
 void Main() {
     var MIN_TEMP = ABS_ZERO + MIN_TEMP_C;
     var TARGET_TEMP = ABS_ZERO + TARGET_TEMP_C;
     var MAX_TEMP = ABS_ZERO + MAX_TEMP_C;
+
+    TempDisplay.Mode = DISPLAY_MODE_TEMPERATURE;
+    PressureDisplay.Mode = DISPLAY_MODE_PRESSURE;
+    PctN2Display.Mode = DISPLAY_MODE_PERCENT;
+    PctCO2Display.Mode = DISPLAY_MODE_PERCENT;
+    PctO2Display.Mode = DISPLAY_MODE_PERCENT;
 
     while (true) {
         yield;
@@ -31,19 +41,10 @@ void Main() {
             DevicesOfType("StructureWallCooler").On = 1;
         }
 
-        TempDisplay.Mode = 4;
         TempDisplay.Setting = GasSensor.Temperature - ABS_ZERO;
-
-        PressureDisplay.Mode = 14;
         PressureDisplay.Setting = GasSensor.Pressure * 1000;
-
-        PctN2Display.Mode = 1;
         PctN2Display.Setting = GasSensor.RatioNitrogen;
-
-        PctCO2Display.Mode = 1;
         PctCO2Display.Setting = GasSensor.RatioCarbonDioxide;
-
-        PctO2Display.Mode = 1;
         PctO2Display.Setting = GasSensor.RatioOxygen;
     }
 }
