@@ -1,10 +1,12 @@
 pin DaylightSensor d0;
 
+const DAYLIGHT_SENSOR_MODE_VERTICAL = 1;
+
 void Main() {
+    DaylightSensor.Mode = DAYLIGHT_SENSOR_MODE_VERTICAL;
+
     while (true) {
         yield;
-
-        DaylightSensor.Mode = 1;
 
         var rawVertical = DaylightSensor.Vertical;
         var rawHorizontal = DaylightSensor.Horizontal;

@@ -5,7 +5,7 @@ pin PctN2Display d3;
 pin PctCO2Display d4;
 pin PressureDisplay d5;
 
-const ABS_ZERO = 273;
+const ABS_ZERO = 273.15;
 const MIN_TEMP_C = 18;
 const TARGET_TEMP_C = 21;
 const MAX_TEMP_C = 24;
@@ -29,20 +29,21 @@ void Main() {
         yield;
         
         if (GasSensor.Temperature < MIN_TEMP) {
-            DevicesOfType("StructureWallHeater").On = 1;
+            DevicesOfType("StructureWallHeater").On = true;
         }
         if (GasSensor.Temperature <= TARGET_TEMP) {
-            DevicesOfType("StructureWallCooler").On = 0;
+            DevicesOfType("StructureWallCooler").On = false;
         }
         if (GasSensor.Temperature >= TARGET_TEMP) {
-            DevicesOfType("StructureWallHeater").On = 0;
+            DevicesOfType("StructureWallHeater").On = true;
         }
         if (GasSensor.Temperature > MAX_TEMP) {
-            DevicesOfType("StructureWallCooler").On = 1;
-        }
+            DevicesOfType("StructureWallCooler").On = false;
+
+        var pressure_kPa = GasSensor.Pressure;
 
         TempDisplay.Setting = GasSensor.Temperature - ABS_ZERO;
-        PressureDisplay.Setting = GasSensor.Pressure * 1000;
+        PressureDisplay.Setting = pressure_kPa * 1000;
         PctN2Display.Setting = GasSensor.RatioNitrogen;
         PctCO2Display.Setting = GasSensor.RatioCarbonDioxide;
         PctO2Display.Setting = GasSensor.RatioOxygen;

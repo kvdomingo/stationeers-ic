@@ -1,0 +1,81 @@
+pin DaylightSensor d0;
+pin OccupancySensor d1;
+pin HydroponicsLarre d2;
+pin CargoLarre d3;
+
+const HYDROPONICS_LARRE_INDEX = 2;
+const CARGO_LARRE_INDEX = 3;
+
+// Grow light settings
+const MINUTES_IN_LIGHT = 12.5;
+const DEGREES_PER_MINUTE = 18;
+
+// Hydroponics Larre stations
+const PLANTER_STATION_ROW_1_START = 8;
+const PLANTER_STATION_ROW_1_END = 12;
+const PLANTER_STATION_ROW_2_START = 1;
+const PLANTER_STATION_ROW_2_END = 5;
+const HARVEST_DROP_STATION = 6;
+const SEED_PICKUP_STATION = 7;
+
+// Cargo Larre stations
+const FRIDGE_STATION_INDEX = 3;
+const SEED_DROP_STATION = 1;
+const HARVEST_PICKUP_STATION = 2;
+const FRIDGE_POTATO_INDEX = 4;
+const FRIDGE_POTATO_SEED_INDEX = 10;
+
+void Main() {
+    while (true) {
+        HandleLights();
+        HydroponicsLarreLoop();
+        CargoLarreLoop();
+    }
+}
+
+void HydroponicsLarreLoop() {
+    for (
+        var station = PLANTER_STATION_ROW_1_START;
+        station <= PLANTER_STATION_ROW_1_END;
+        station = station + 1
+    ) {
+        HydroponicsLarre.Setting = station;
+        WaitUntilLarreIdle(HYDROPONICS_LARRE_INDEX);
+    }
+
+    for (
+        var station = PLANTER_STATION_ROW_2_START;
+        station <= PLANTER_STATION_ROW_2_END;
+        station = station + 1
+    ) {
+        HydroponicsLarre.Setting = station;
+        WaitUntilLarreIdle(HYDROPONICS_LARRE_INDEX);
+    }
+}
+
+void CargoLarreLoop() {
+    CargoLarre.Setting = FRIDGE_STATION_INDEX;
+    WaitUntilLarreIdle(CARGO_LARRE_INDEX);
+
+    CargoLarre.Setting = SEED_DROP_STATION;
+    WaitUntilLarreIdle(CARGO_LARRE_INDEX);
+
+    CargoLarre.Setting = HARVEST_PICKUP_STATION;
+    WaitUntilLarreIdle(CARGO_LARRE_INDEX);
+}
+
+void WaitUntilLarreIdle(pinIdx) {
+    while (!Pins[pinIdx].Idle) {
+        yield;
+        HandleLights();
+    }
+}
+
+void HandleLights() {
+    var degreesPerDay = DEGREES_PER_MINUTE * MINUTES_IN_LIGHT;
+    var halfLightBudget = degreesPerDay / 2;
+
+    DevicesOfType("StructureGrowLight").On = DaylightSensor.SolarAngle < halfLightBudget;
+    DevicesOfType("StructureLightLongAngled").On = OccupancySensor.Activate;
+    DevicesOfType("StructureLightLongWide").On = OccupancySensor.Activate;
+}

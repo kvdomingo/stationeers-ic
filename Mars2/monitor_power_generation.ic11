@@ -5,21 +5,29 @@ pin StoredPctDisp d3;
 pin BatteryTimeDisp d4;
 
 const SECONDS_PER_TICK = 0.5;  // approximate only
-const EPSILON = 0.000001;
+const DISPLAY_MODE_PERCENT = 1;
+const DISPLAY_MODE_POWER = 2;
+const DISPLAY_MODE_MINUTES = 8;
+const DISPLAY_MODE_DAYS = 9;
 
 void Main() {
-    PowerGenDisp.Mode = 2;
-    PowerConsDisp.Mode = 2;
-    PowerStoredDisp.Mode = 2;
-    StoredPctDisp.Mode = 1;
+    PowerGenDisp.On = true;
+    PowerGenDisp.Mode = DISPLAY_MODE_POWER;
+    PowerConsDisp.On = true;
+    PowerConsDisp.Mode = DISPLAY_MODE_POWER;
+    PowerStoredDisp.On = true;
+    PowerStoredDisp.Mode = DISPLAY_MODE_POWER;
+    StoredPctDisp.On = true;
+    StoredPctDisp.Mode = DISPLAY_MODE_PERCENT;
+    BatteryTimeDisp.On = true;
 
     while (true) {
         yield;
 
         var solarGeneration = DevicesOfType("StructureLogicMirror").WithName("Solar Generation").PowerPotential.Sum;
         var windGeneration = DevicesOfType("StructureLogicMirror").WithName("Wind Generation").PowerPotential.Sum;
-        var rtgGeneration = DevicesOfType("StructureRTGSurvival").PowerGeneration.Sum;
         var coalGeneration = DevicesOfType("StructureSolidFuelGenerator").PowerGeneration.Sum;
+        var rtgGeneration = DevicesOfType("StructureRTGSurvival").PowerGeneration.Sum;
         var totalGeneration = solarGeneration + windGeneration + coalGeneration + rtgGeneration;
         
         var powerConsumption = DevicesOfType("StructureLogicMirror").WithName("Main Breaker").PowerActual.Sum;
@@ -29,20 +37,22 @@ void Main() {
         var netConsumption = powerConsumption - totalGeneration;
         var batteryTimeTicks = 0;
         
-        if (netConsumption > EPSILON) {
+        if (netConsumption > Epsilon) {
             batteryTimeTicks = batteryStored / netConsumption;
+            BatteryTimeDisp.On = true;
         } else {
-            batteryTimeTicks = 999999;
+            batteryTimeTicks = PInf;
+            BatteryTimeDisp.On = false;
         }
         
         var batteryTimeMins = batteryTimeTicks * SECONDS_PER_TICK / 60;
         var batteryTimeDays = batteryTimeMins / 60 / 24;
 
-        if (batteryTimeMins >= 1000) {
-            BatteryTimeDisp.Mode = 9;
+        if (batteryTimeMins >= 1440) {
+            BatteryTimeDisp.Mode = DISPLAY_MODE_DAYS;
             BatteryTimeDisp.Setting = batteryTimeDays;
         } else {
-            BatteryTimeDisp.Mode = 8;
+            BatteryTimeDisp.Mode = DISPLAY_MODE_MINUTES;
             BatteryTimeDisp.Setting = batteryTimeMins;
         }
 
