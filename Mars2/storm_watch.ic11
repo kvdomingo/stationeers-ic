@@ -62,5 +62,5 @@ void Main() {
 }
 
 void HandleLights() {
-    DevicesOfType("StructureLightLongWide").On = OccupancySensor.Activate;
+    DevicesOfType("StructureLightLongWide").On = DevicesOfType("StructureOccupancySensor").Activate.Maximum;
 }
