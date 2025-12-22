@@ -1,64 +1,75 @@
-pin PowerGenDisp d0;
-pin PowerConsDisp d1;
-pin PowerStoredDisp d2;
-pin StoredPctDisp d3;
-pin BatteryTimeDisp d4;
-
-const SECONDS_PER_TICK = 0.5;  // approximate only
+const SECONDS_PER_TICK = 0.5;
 const DISPLAY_MODE_PERCENT = 1;
 const DISPLAY_MODE_POWER = 2;
 const DISPLAY_MODE_MINUTES = 8;
 const DISPLAY_MODE_DAYS = 9;
 
+const DISPLAY_COLOR_GREEN = 2;
+const DISPLAY_COLOR_RED = 4;
+
 void Main() {
-    PowerGenDisp.On = true;
-    PowerGenDisp.Mode = DISPLAY_MODE_POWER;
-    PowerConsDisp.On = true;
-    PowerConsDisp.Mode = DISPLAY_MODE_POWER;
-    PowerStoredDisp.On = true;
-    PowerStoredDisp.Mode = DISPLAY_MODE_POWER;
-    StoredPctDisp.On = true;
-    StoredPctDisp.Mode = DISPLAY_MODE_PERCENT;
-    BatteryTimeDisp.On = true;
+    DevicesOfType("ModularDeviceLEDdisplay3").WithName("TotalPowerGenDisp").On = true;
+    DevicesOfType("ModularDeviceLEDdisplay3").WithName("TotalPowerGenDisp").Mode = DISPLAY_MODE_POWER;
+    DevicesOfType("ModularDeviceLEDdisplay3").WithName("SolarGenDisp").On = true;
+    DevicesOfType("ModularDeviceLEDdisplay3").WithName("SolarGenDisp").Mode = DISPLAY_MODE_POWER;
+    DevicesOfType("ModularDeviceLEDdisplay3").WithName("WindGenDisp").On = true;
+    DevicesOfType("ModularDeviceLEDdisplay3").WithName("WindGenDisp").Mode = DISPLAY_MODE_POWER;
+    DevicesOfType("ModularDeviceLEDdisplay3").WithName("CoalGenDisp").On = true;
+    DevicesOfType("ModularDeviceLEDdisplay3").WithName("CoalGenDisp").Mode = DISPLAY_MODE_POWER;
+    DevicesOfType("ModularDeviceLEDdisplay3").WithName("RTGGenDisp").On = true;
+    DevicesOfType("ModularDeviceLEDdisplay3").WithName("RTGGenDisp").Mode = DISPLAY_MODE_POWER;
+    DevicesOfType("ModularDeviceLEDdisplay3").WithName("TotalPowerConsDisp").On = true;
+    DevicesOfType("ModularDeviceLEDdisplay3").WithName("TotalPowerConsDisp").Mode = DISPLAY_MODE_POWER;
+    DevicesOfType("ModularDeviceLEDdisplay3").WithName("PowerStoredDisp").On = true;
+    DevicesOfType("ModularDeviceLEDdisplay3").WithName("PowerStoredDisp").Mode = DISPLAY_MODE_POWER;
+    DevicesOfType("ModularDeviceLEDdisplay3").WithName("StoredPctDisp").On = true;
+    DevicesOfType("ModularDeviceLEDdisplay3").WithName("StoredPctDisp").Mode = DISPLAY_MODE_PERCENT;
+    DevicesOfType("ModularDeviceLEDdisplay3").WithName("BatteryTimeDisp").On = true;
 
     while (true) {
         yield;
 
-        var solarGeneration = DevicesOfType("StructureLogicMirror").WithName("Solar Generation").PowerPotential.Sum;
-        var windGeneration = DevicesOfType("StructureLogicMirror").WithName("Wind Generation").PowerPotential.Sum;
+        var solarGeneration = DevicesOfType("StructureLogicMirror").WithName("Solar Generation").PowerActual.Sum;
+        var windGeneration = DevicesOfType("StructureLogicMirror").WithName("Wind Generation").PowerActual.Sum;
         var coalGeneration = DevicesOfType("StructureSolidFuelGenerator").PowerGeneration.Sum;
         var rtgGeneration = DevicesOfType("StructureRTGSurvival").PowerGeneration.Sum;
-        var totalGeneration = solarGeneration + windGeneration + coalGeneration + rtgGeneration;
         
-        var powerConsumption = DevicesOfType("StructureLogicMirror").WithName("Main Breaker").PowerActual.Sum;
+        var totalGeneration = solarGeneration + windGeneration + coalGeneration + rtgGeneration;
+        var powerConsumption = DevicesOfType("StructureCableAnalysizer").WithName("Main Breaker").PowerActual.Sum;
+        if (totalGeneration < powerConsumption) {
+            DevicesOfType("ModularDeviceLEDdisplay3").WithName("TotalPowerGenDisp").Color = DISPLAY_COLOR_RED;
+        } else {
+            DevicesOfType("ModularDeviceLEDdisplay3").WithName("TotalPowerGenDisp").Color = DISPLAY_COLOR_GREEN;
+        }
         
         var batteryStored = DevicesOfType("StructureBatteryLarge").Charge.Sum;
         var batteryRatio = DevicesOfType("StructureBatteryLarge").Ratio.Average;
+
         var netConsumption = powerConsumption - totalGeneration;
-        var batteryTimeTicks = 0;
-        
-        if (netConsumption > Epsilon) {
-            batteryTimeTicks = batteryStored / netConsumption;
-            BatteryTimeDisp.On = true;
+        if (netConsumption >= 0) {
+            DevicesOfType("ModularDeviceLEDdisplay3").WithName("BatteryTimeDisp").Color = DISPLAY_COLOR_RED;
         } else {
-            batteryTimeTicks = PInf;
-            BatteryTimeDisp.On = false;
+            DevicesOfType("ModularDeviceLEDdisplay3").WithName("BatteryTimeDisp").Color = DISPLAY_COLOR_GREEN;
         }
         
+        var batteryTimeTicks = batteryStored / abs(netConsumption + Epsilon);
         var batteryTimeMins = batteryTimeTicks * SECONDS_PER_TICK / 60;
         var batteryTimeDays = batteryTimeMins / 60 / 24;
-
         if (batteryTimeMins >= 1440) {
-            BatteryTimeDisp.Mode = DISPLAY_MODE_DAYS;
-            BatteryTimeDisp.Setting = batteryTimeDays;
+            DevicesOfType("ModularDeviceLEDdisplay3").WithName("BatteryTimeDisp").Mode = DISPLAY_MODE_DAYS;
+            DevicesOfType("ModularDeviceLEDdisplay3").WithName("BatteryTimeDisp").Setting = batteryTimeDays;
         } else {
-            BatteryTimeDisp.Mode = DISPLAY_MODE_MINUTES;
-            BatteryTimeDisp.Setting = batteryTimeMins;
+            DevicesOfType("ModularDeviceLEDdisplay3").WithName("BatteryTimeDisp").Mode = DISPLAY_MODE_MINUTES;
+            DevicesOfType("ModularDeviceLEDdisplay3").WithName("BatteryTimeDisp").Setting = batteryTimeMins;
         }
 
-        PowerGenDisp.Setting = totalGeneration;
-        PowerConsDisp.Setting = powerConsumption;
-        PowerStoredDisp.Setting = batteryStored;
-        StoredPctDisp.Setting = batteryRatio;
+        DevicesOfType("ModularDeviceLEDdisplay3").WithName("TotalPowerGenDisp").Setting = totalGeneration;
+        DevicesOfType("ModularDeviceLEDdisplay3").WithName("SolarGenDisp").Setting = solarGeneration;
+        DevicesOfType("ModularDeviceLEDdisplay3").WithName("WindGenDisp").Setting = windGeneration;
+        DevicesOfType("ModularDeviceLEDdisplay3").WithName("CoalGenDisp").Setting = coalGeneration;
+        DevicesOfType("ModularDeviceLEDdisplay3").WithName("RTGGenDisp").Setting = rtgGeneration;
+        DevicesOfType("ModularDeviceLEDdisplay3").WithName("TotalPowerConsDisp").Setting = powerConsumption;
+        DevicesOfType("ModularDeviceLEDdisplay3").WithName("PowerStoredDisp").Setting = batteryStored;
+        DevicesOfType("ModularDeviceLEDdisplay3").WithName("StoredPctDisp").Setting = batteryRatio;
     }
 }
