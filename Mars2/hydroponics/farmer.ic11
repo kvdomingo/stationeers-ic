@@ -1,6 +1,6 @@
 pin DaylightSensor d0;
 pin OccupancySensor d1;
-pin Larre d2;
+// pin Larre d2;
 
 const MINUTES_IN_LIGHT = 12.5;
 const DEGREES_PER_MINUTE = 18;
@@ -26,143 +26,144 @@ void HandleLights() {
     DevicesOfType("StructureLightLongWide").On = OccupancySensor.Activate;
 }
 
-void WaitUntilIdle() {
-    while (!Larre.Idle) {
-        HandleLights();
-        yield;
-    }
-}
+// void WaitUntilIdle() {
+//     while (!Larre.Idle) {
+//         HandleLights();
+//         yield;
+//     }
+// }
 
-void Move(station) {
-    Larre.Setting = station;
-    WaitUntilIdle();
-}
+// void Move(station) {
+//     Larre.Setting = station;
+//     WaitUntilIdle();
+// }
 
-void Act() {
-    Larre.Activate = true;
-    WaitUntilIdle();
-}
+// void Act() {
+//     Larre.Activate = true;
+//     WaitUntilIdle();
+// }
 
-real CanDoActionInner(station, state, numStationsPending) {
-    Move(station);
+// real CanDoActionInner(station, state, numStationsPending) {
+//     Move(station);
     
-    if (
-        ((state == LARRE_STATE_PLANTING) & !Larre.Slots[255].Occupied)
-        | ((state == LARRE_STATE_HARVESTING_SEED)
-            & Larre.Slots[255].Occupied
-            & Larre.Slots[255].Seeding)
-        | ((state == LARRE_STATE_HARVESTING_CROP)
-            & Larre.Slots[255].Occupied
-            & Larre.Slots[255].Mature
-            & !Larre.Slots[255].Seeding)
-    ) {
-        numStationsPending = numStationsPending - 1;
-    }
+//     if (
+//         ((state == LARRE_STATE_PLANTING) & !Larre.Slots[255].Occupied)
+//         | ((state == LARRE_STATE_HARVESTING_SEED)
+//             & Larre.Slots[255].Occupied
+//             & Larre.Slots[255].Seeding)
+//         | ((state == LARRE_STATE_HARVESTING_CROP)
+//             & Larre.Slots[255].Occupied
+//             & Larre.Slots[255].Mature
+//             & !Larre.Slots[255].Seeding)
+//     ) {
+//         numStationsPending = numStationsPending - 1;
+//     }
 
-    return numStationsPending;
-}
+//     return numStationsPending;
+// }
 
-real CanDoAction(state) {
-    var numStationsPending = NUM_PLANTERS;
+// real CanDoAction(state) {
+//     var numStationsPending = NUM_PLANTERS;
 
-    for (
-        var station = PLANTER_STATION_ROW_1_START;
-        station >= PLANTER_STATION_ROW_1_END;
-        station = station - 1
-    ) {
-        numStationsPending = CanDoActionInner(station, state, numStationsPending);
-    }
+//     for (
+//         var station = PLANTER_STATION_ROW_1_START;
+//         station >= PLANTER_STATION_ROW_1_END;
+//         station = station - 1
+//     ) {
+//         numStationsPending = CanDoActionInner(station, state, numStationsPending);
+//     }
 
-    for (
-        var station = PLANTER_STATION_ROW_2_START;
-        station >= PLANTER_STATION_ROW_2_END;
-        station = station - 1
-    ) {
-        numStationsPending = CanDoActionInner(station, state, numStationsPending);
-    }
+//     for (
+//         var station = PLANTER_STATION_ROW_2_START;
+//         station >= PLANTER_STATION_ROW_2_END;
+//         station = station - 1
+//     ) {
+//         numStationsPending = CanDoActionInner(station, state, numStationsPending);
+//     }
 
-    return numStationsPending == 0;
-}
+//     return numStationsPending == 0;
+// }
 
 void Main() {
-    var state = LARRE_STATE_PLANTING;
+    // var state = LARRE_STATE_PLANTING;
 
     while (true) {
-        if (!CanDoAction(state)) {
-            continue;
-        }
+        HandleLights();
+        // if (!CanDoAction(state)) {
+        //     continue;
+        // }
 
-        if (state == LARRE_STATE_PLANTING) {
-            Move(SEED_PICKUP_STATION);
-            Act();
-            for (
-                var station = PLANTER_STATION_ROW_1_START;
-                station >= PLANTER_STATION_ROW_1_END;
-                station = station - 1
-            ) {
-                Move(station);
-                Act();
-            }
-            for (
-                var station = PLANTER_STATION_ROW_2_START;
-                station >= PLANTER_STATION_ROW_2_END;
-                station = station - 1
-            ) {
-                Move(station);
-                Act();
-            }
-        }
+        // if (state == LARRE_STATE_PLANTING) {
+        //     Move(SEED_PICKUP_STATION);
+        //     Act();
+        //     for (
+        //         var station = PLANTER_STATION_ROW_1_START;
+        //         station >= PLANTER_STATION_ROW_1_END;
+        //         station = station - 1
+        //     ) {
+        //         Move(station);
+        //         Act();
+        //     }
+        //     for (
+        //         var station = PLANTER_STATION_ROW_2_START;
+        //         station >= PLANTER_STATION_ROW_2_END;
+        //         station = station - 1
+        //     ) {
+        //         Move(station);
+        //         Act();
+        //     }
+        // }
 
-        if (state == LARRE_STATE_HARVESTING_SEED) {
-            for (
-                var station = PLANTER_STATION_ROW_1_START;
-                station >= PLANTER_STATION_ROW_1_END;
-                station = station - 1
-            ) {
-                Move(station);
-                while (Larre.Slots[255].Seeding) {
-                    Act();
-                }
-            }
-            for (
-                var station = PLANTER_STATION_ROW_2_START;
-                station >= PLANTER_STATION_ROW_2_END;
-                station = station - 1
-            ) {
-                Move(station);
-                while (Larre.Slots[255].Seeding) {
-                    Act();
-                }
-            }
-            Move(HARVEST_DROP_STATION);
-            Act();
-        }
+        // if (state == LARRE_STATE_HARVESTING_SEED) {
+        //     for (
+        //         var station = PLANTER_STATION_ROW_1_START;
+        //         station >= PLANTER_STATION_ROW_1_END;
+        //         station = station - 1
+        //     ) {
+        //         Move(station);
+        //         while (Larre.Slots[255].Seeding) {
+        //             Act();
+        //         }
+        //     }
+        //     for (
+        //         var station = PLANTER_STATION_ROW_2_START;
+        //         station >= PLANTER_STATION_ROW_2_END;
+        //         station = station - 1
+        //     ) {
+        //         Move(station);
+        //         while (Larre.Slots[255].Seeding) {
+        //             Act();
+        //         }
+        //     }
+        //     Move(HARVEST_DROP_STATION);
+        //     Act();
+        // }
 
-        if (state == LARRE_STATE_HARVESTING_CROP) {
-            for (
-                var station = PLANTER_STATION_ROW_1_START;
-                station >= PLANTER_STATION_ROW_1_END;
-                station = station - 1
-            ) {
-                Move(station);
-                while (Larre.Slots[255].Occupied) {
-                    Act();
-                }
-            }
-            for (
-                var station = PLANTER_STATION_ROW_2_START;
-                station >= PLANTER_STATION_ROW_2_END;
-                station = station - 1
-            ) {
-                Move(station);
-                while (Larre.Slots[255].Occupied) {
-                    Act();
-                }
-            }
-            Move(HARVEST_DROP_STATION);
-            Act();
-        }
+        // if (state == LARRE_STATE_HARVESTING_CROP) {
+        //     for (
+        //         var station = PLANTER_STATION_ROW_1_START;
+        //         station >= PLANTER_STATION_ROW_1_END;
+        //         station = station - 1
+        //     ) {
+        //         Move(station);
+        //         while (Larre.Slots[255].Occupied) {
+        //             Act();
+        //         }
+        //     }
+        //     for (
+        //         var station = PLANTER_STATION_ROW_2_START;
+        //         station >= PLANTER_STATION_ROW_2_END;
+        //         station = station - 1
+        //     ) {
+        //         Move(station);
+        //         while (Larre.Slots[255].Occupied) {
+        //             Act();
+        //         }
+        //     }
+        //     Move(HARVEST_DROP_STATION);
+        //     Act();
+        // }
 
-        state = (state + 1) % 3;
+        // state = (state + 1) % 3;
     }
 }
