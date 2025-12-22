@@ -1,0 +1,20 @@
+[project]
+name = "stationeers-ic"
+version = "0.1.0"
+description = ""
+readme = ""
+requires-python = "~=3.13.0"
+dependencies = [
+    "sicc",
+    "stationeers-pytrapic",
+]
+
+[tool.uv.sources]
+stationeers-pytrapic = { git = "https://github.com/aproposmath/stationeers-pytrapic.git" }
+sicc = { git = "https://github.com/Alan-Chen99/sicc.git" }
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.10",
+    "ty>=0.0.5",
+]
