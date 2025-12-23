@@ -1,0 +1,73 @@
+pin PowerGenDisp d0;
+pin PowerConsDisp d1;
+pin PowerStoredDisp d2;
+pin StoredPctDisp d3;
+pin BatteryTimeDisp d4;
+
+const SECONDS_PER_TICK = 0.5; 
+const SECONDS_PER_MINUTE = 60;
+const MINUTES_PER_HOUR = 60;
+const MINUTES_PER_DAY = 1440;
+const HOURS_PER_DAY = 24;
+
+const DISPLAY_MODE_PERCENT = 1;
+const DISPLAY_MODE_POWER = 2;
+const DISPLAY_MODE_MINUTES = 8;
+const DISPLAY_MODE_DAYS = 9;
+
+const DISPLAY_COLOR_GREEN = 2;
+const DISPLAY_COLOR_RED = 4;
+
+void Main() {
+    PowerGenDisp.On = true;
+    PowerGenDisp.Mode = DISPLAY_MODE_POWER;
+    PowerConsDisp.On = true;
+    PowerConsDisp.Mode = DISPLAY_MODE_POWER;
+    PowerStoredDisp.On = true;
+    PowerStoredDisp.Mode = DISPLAY_MODE_POWER;
+    StoredPctDisp.On = true;
+    StoredPctDisp.Mode = DISPLAY_MODE_PERCENT;
+    BatteryTimeDisp.On = true;
+
+    while (true) {
+        yield;
+
+        var solarGeneration = DevicesOfType("StructureSolarPanelDualReinforced").Charge.Sum;
+        var windGeneration = DevicesOfType("StructureWindTurbine").PowerGeneration.Sum;
+        var coalGeneration = DevicesOfType("StructureSolidFuelGenerator").PowerGeneration.Sum;
+        var rtgGeneration = DevicesOfType("StructureCableAnalysizer").WithName("RTG Generation").PowerPotential.Sum;
+        
+        var totalGeneration = solarGeneration + windGeneration + coalGeneration + rtgGeneration;
+        var powerConsumption = DevicesOfType("StructureCableAnalysizer").WithName("Main Breaker").PowerActual.Sum;
+        if (totalGeneration > powerConsumption) {
+            PowerGenDisp.Color = DISPLAY_COLOR_GREEN;
+        } else {
+            PowerGenDisp.Color = DISPLAY_COLOR_RED;
+        }
+        
+        var batteryStored = DevicesOfType("StructureBatteryLarge").Charge.Sum;
+        var batteryRatio = DevicesOfType("StructureBatteryLarge").Ratio.Average;
+        var netConsumption = powerConsumption - totalGeneration;
+        var batteryTimeTicks = batteryStored / (abs(netConsumption) + Epsilon);
+        
+        if (totalGeneration > powerConsumption) {
+            BatteryTimeDisp.Color = DISPLAY_COLOR_GREEN;
+        } else {
+            BatteryTimeDisp.Color = DISPLAY_COLOR_RED;
+        }
+        
+        var batteryTimeMins = batteryTimeTicks * SECONDS_PER_TICK / SECONDS_PER_MINUTE;
+        if (batteryTimeMins >= MINUTES_PER_DAY) {
+            BatteryTimeDisp.Mode = DISPLAY_MODE_DAYS;
+            BatteryTimeDisp.Setting = batteryTimeMins / MINUTES_PER_HOUR / HOURS_PER_DAY;
+        } else {
+            BatteryTimeDisp.Mode = DISPLAY_MODE_MINUTES;
+            BatteryTimeDisp.Setting = batteryTimeMins;
+        }
+
+        PowerGenDisp.Setting = totalGeneration;
+        PowerConsDisp.Setting = powerConsumption;
+        PowerStoredDisp.Setting = batteryStored;
+        StoredPctDisp.Setting = batteryRatio;
+    }
+}

@@ -1,8 +1,9 @@
 import sicc as ic
+from scipy.constants import zero_Celsius
 
 gas_sensor = ic.d0
 
-ABS_ZERO = 273.15
+ABS_ZERO = zero_Celsius
 MIN_TEMP_C = 18
 TARGET_TEMP_C = 21
 MAX_TEMP_C = 24
@@ -15,15 +16,16 @@ MAX_TEMP = ABS_ZERO + MAX_TEMP_C
 def main():
     with ic.loop():
         ic.yield_()
+        temperature = gas_sensor.Temperature
 
-        with ic.if_(gas_sensor.Temperature < MIN_TEMP):
+        with ic.if_(temperature < MIN_TEMP):
             ic.devices.WallHeater().On = True
-        with ic.if_(gas_sensor.Temperature <= TARGET_TEMP):
+        with ic.if_(temperature <= TARGET_TEMP):
             ic.devices.WallCooler().On = False
-        with ic.if_(gas_sensor.Temperature >= TARGET_TEMP):
-            ic.devices.WallHeater().On = True
-        with ic.if_(gas_sensor.Temperature > MAX_TEMP):
-            ic.devices.WallCooler().On = False
+        with ic.if_(temperature >= TARGET_TEMP):
+            ic.devices.WallHeater().On = False
+        with ic.if_(temperature > MAX_TEMP):
+            ic.devices.WallCooler().On = True
 
 
 if __name__ == "__main__":

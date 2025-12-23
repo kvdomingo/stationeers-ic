@@ -30,15 +30,16 @@ def main():
 
     with ic.loop():
         ic.yield_()
+        temperature = gas_sensor.Temperature
 
-        with ic.if_(gas_sensor.Temperature < MIN_TEMP):
+        with ic.if_(temperature < MIN_TEMP):
             ic.devices.WallHeater().On = True
-        with ic.if_(gas_sensor.Temperature <= TARGET_TEMP):
+        with ic.if_(temperature <= TARGET_TEMP):
             ic.devices.WallCooler().On = False
-        with ic.if_(gas_sensor.Temperature >= TARGET_TEMP):
-            ic.devices.WallHeater().On = True
-        with ic.if_(gas_sensor.Temperature > MAX_TEMP):
-            ic.devices.WallCooler().On = False
+        with ic.if_(temperature >= TARGET_TEMP):
+            ic.devices.WallHeater().On = False
+        with ic.if_(temperature > MAX_TEMP):
+            ic.devices.WallCooler().On = True
 
         pressure_kPa = gas_sensor.Pressure
 

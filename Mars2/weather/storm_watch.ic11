@@ -21,6 +21,7 @@ const LED_COLOR_YELLOW = 5;
 
 void Main() {
     Display.On = true;
+    Speaker.Volume = 100;
 
     while (true) {
         yield;
@@ -37,6 +38,7 @@ void Main() {
             var eta = WeatherStation.NextWeatherEventTime;
             Speaker.On = true;
             Speaker.Mode = SPEAKER_MODE_STORM_INCOMING;
+            Speaker.SoundAlert = SPEAKER_MODE_STORM_INCOMING;
             Display.Setting = eta;
             Display.Color = LED_COLOR_YELLOW;
             
@@ -44,9 +46,11 @@ void Main() {
                 Display.Mode = LED_MODE_SECONDS;
             } 
             if (eta >= 60 & eta < 1440) {
+                Display.Setting = eta / 60;
                 Display.Mode = LED_MODE_MINUTES;
             }
             if (eta >= 1440) {
+                Display.Setting = eta / 60 / 24;
                 Display.Mode = LED_MODE_DAYS;
             }
         }
@@ -54,6 +58,7 @@ void Main() {
         if (WeatherStation.Mode == WEATHER_STATION_MODE_IN_STORM) {
             Speaker.On = true;
             Speaker.Mode = SPEAKER_MODE_ALERT;
+            Speaker.SoundAlert = SPEAKER_MODE_ALERT;
             Display.Setting = 'STORM';
             Display.Color = LED_COLOR_RED;
             Display.Mode = LED_MODE_STRING;

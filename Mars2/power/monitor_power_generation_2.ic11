@@ -1,0 +1,31 @@
+pin SolarGenDisp d0;
+pin WindGenDisp d1;
+pin CoalGenDisp d2;
+pin RTGGenDisp d3;
+
+const DISPLAY_MODE_POWER = 2;
+
+void Main() {
+    SolarGenDisp.On = true;
+    SolarGenDisp.Mode = DISPLAY_MODE_POWER;
+    WindGenDisp.On = true;
+    WindGenDisp.Mode = DISPLAY_MODE_POWER;
+    CoalGenDisp.On = true;
+    CoalGenDisp.Mode = DISPLAY_MODE_POWER;
+    RTGGenDisp.On = true;
+    RTGGenDisp.Mode = DISPLAY_MODE_POWER;
+
+    while (true) {
+        yield;
+
+        var solarGeneration = DevicesOfType("StructureSolarPanelDualReinforced").Charge.Sum;
+        var windGeneration = DevicesOfType("StructureWindTurbine").PowerGeneration.Sum;
+        var coalGeneration = DevicesOfType("StructureSolidFuelGenerator").PowerGeneration.Sum;
+        var rtgGeneration = DevicesOfType("StructureCableAnalysizer").WithName("RTG Generation").PowerPotential.Sum;
+        
+        SolarGenDisp.Setting = solarGeneration;
+        WindGenDisp.Setting = windGeneration;
+        CoalGenDisp.Setting = coalGeneration;
+        RTGGenDisp.Setting = rtgGeneration;
+    }
+}

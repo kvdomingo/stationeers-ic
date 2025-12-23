@@ -5,12 +5,11 @@ description = ""
 readme = ""
 requires-python = "~=3.13.0"
 dependencies = [
+    "scipy>=1.16.3",
     "sicc",
-    "stationeers-pytrapic",
 ]
 
 [tool.uv.sources]
-stationeers-pytrapic = { git = "https://github.com/aproposmath/stationeers-pytrapic.git" }
 sicc = { git = "https://github.com/Alan-Chen99/sicc.git" }
 
 [dependency-groups]
