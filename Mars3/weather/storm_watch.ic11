@@ -1,0 +1,60 @@
+pin WeatherStation d0;
+pin Display d1;
+pin OccupancySensor d3;
+
+const WEATHER_STATION_MODE_NO_STORM = 0;
+const WEATHER_STATION_MODE_STORM_INCOMING = 1;
+const WEATHER_STATION_MODE_IN_STORM = 2;
+
+
+const LED_MODE_SECONDS = 7;
+const LED_MODE_MINUTES = 8;
+const LED_MODE_DAYS = 9;
+const LED_MODE_STRING = 10;
+
+const LED_COLOR_GREEN = 2;
+const LED_COLOR_RED = 4;
+const LED_COLOR_YELLOW = 5;
+
+void Main() {
+    Display.On = true;
+
+    while (true) {
+        yield;
+        HandleLights();
+
+        if (WeatherStation.Mode == WEATHER_STATION_MODE_NO_STORM) {
+            Display.Setting = 'CLEAR';
+            Display.Color = LED_COLOR_GREEN;
+            Display.Mode = LED_MODE_STRING;
+        } 
+        
+        if (WeatherStation.Mode == WEATHER_STATION_MODE_STORM_INCOMING) {
+            var eta = WeatherStation.NextWeatherEventTime;
+            Display.Setting = eta;
+            Display.Color = LED_COLOR_YELLOW;
+            
+            if (eta < 60) {
+                Display.Mode = LED_MODE_SECONDS;
+            } 
+            if (eta >= 60 & eta < 1440) {
+                Display.Setting = eta / 60;
+                Display.Mode = LED_MODE_MINUTES;
+            }
+            if (eta >= 1440) {
+                Display.Setting = eta / 60 / 24;
+                Display.Mode = LED_MODE_DAYS;
+            }
+        }
+        
+        if (WeatherStation.Mode == WEATHER_STATION_MODE_IN_STORM) {
+            Display.Setting = 'STORM';
+            Display.Color = LED_COLOR_RED;
+            Display.Mode = LED_MODE_STRING;
+        }
+    }
+}
+
+void HandleLights() {
+    DevicesOfType("StructureLightLongWide").On = DevicesOfType("StructureOccupancySensor").Activate.Maximum;
+}

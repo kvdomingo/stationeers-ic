@@ -1,0 +1,20 @@
+pin DaylightSensor d0;
+
+const DAYLIGHT_SENSOR_MODE_VERTICAL = 1;
+
+void Main() {
+    DaylightSensor.Mode = DAYLIGHT_SENSOR_MODE_VERTICAL;
+
+    while (true) {
+        yield;
+
+        var rawVertical = DaylightSensor.Vertical;
+        var rawHorizontal = DaylightSensor.Horizontal;
+
+        var horizontal = (rawHorizontal) % 360;
+        var vertical = (90 - rawVertical) % 360;
+
+        DevicesOfType("StructureSolarPanelDualReinforced").Vertical = vertical;
+        DevicesOfType("StructureSolarPanelDualReinforced").Horizontal = horizontal;
+    }
+}
